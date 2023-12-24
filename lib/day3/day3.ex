@@ -2,18 +2,26 @@ defmodule AOC23.Day3 do
   defmodule Parser do
     import NimbleParsec
 
-    digit = ascii_char([?0..?9])
-            |> map({List, :wrap, []})
-            |> map({List, :to_string, []})
-            |> map({__MODULE__, :to_int, []})
-            |> label("digit")
+    digit =
+      ascii_char([?0..?9])
+      |> map({List, :wrap, []})
+      |> map({List, :to_string, []})
+      |> map({__MODULE__, :to_int, []})
+      |> label("digit")
 
     defparsec(:empty, replace(ignore(string(".")), :empty))
     defparsec(:number, digit)
     defparsec(:eol, ignore(choice([string("\r\n"), string("\n"), eos()])) |> label("end of line"))
-    defparsec(:symbol, replace(ascii_char([not: ?0..?9, not: ?., not: ?\n, not: ?\r]), :symbol) |> label("symbol"))
 
-    defparsec(:line, times(choice([parsec(:empty), parsec(:number), parsec(:symbol)]), min: 1) |> parsec(:eol))
+    defparsec(
+      :symbol,
+      replace(ascii_char(not: ?0..?9, not: ?., not: ?\n, not: ?\r), :symbol) |> label("symbol")
+    )
+
+    defparsec(
+      :line,
+      times(choice([parsec(:empty), parsec(:number), parsec(:symbol)]), min: 1) |> parsec(:eol)
+    )
 
     defparsec(:parse, times(wrap(parsec(:line)), min: 1))
 
@@ -72,9 +80,17 @@ defmodule AOC23.Day3 do
 
     def neighbors(%__MODULE__{} = grid, x, y) do
       [
-        [get(grid, x - 1, y - 1) || :empty, get(grid, x, y - 1) || :empty, get(grid, x + 1, y - 1) || :empty],
-        [get(grid, x - 1, y    ) || :empty, get(grid, x, y    ) || :empty, get(grid, x + 1, y    ) || :empty],
-        [get(grid, x - 1, y + 1) || :empty, get(grid, x, y + 1) || :empty, get(grid, x + 1, y + 1) || :empty]
+        [
+          get(grid, x - 1, y - 1) || :empty,
+          get(grid, x, y - 1) || :empty,
+          get(grid, x + 1, y - 1) || :empty
+        ],
+        [get(grid, x - 1, y) || :empty, get(grid, x, y) || :empty, get(grid, x + 1, y) || :empty],
+        [
+          get(grid, x - 1, y + 1) || :empty,
+          get(grid, x, y + 1) || :empty,
+          get(grid, x + 1, y + 1) || :empty
+        ]
       ]
     end
 
@@ -85,27 +101,30 @@ defmodule AOC23.Day3 do
         [c1, c2, c3]
       ] = neighbors(grid, x, y)
 
-      a1 == :symbol || a2 == :symbol || a3 == :symbol
-      || b1 == :symbol || b2 == :symbol || b3 == :symbol
-      || c1 == :symbol || c2 == :symbol || c3 == :symbol
+      a1 == :symbol || a2 == :symbol || a3 == :symbol ||
+        b1 == :symbol || b2 == :symbol || b3 == :symbol ||
+        c1 == :symbol || c2 == :symbol || c3 == :symbol
     end
 
     def valid_coords(%__MODULE__{width: width, height: height} = grid) do
-      Enum.map(0..height - 1, fn y ->
-        Enum.map(0..width - 1, fn x ->
+      Enum.map(0..(height - 1), fn y ->
+        Enum.map(0..(width - 1), fn x ->
           not has_neighboring_symbol?(grid, x, y)
         end)
       end)
     end
 
     def part_numbers(%__MODULE__{width: width, height: height} = grid) do
-      Enum.map(0..height - 1, fn y ->
-        Enum.reduce(0..width - 1, [%PartNumber{part_number: "", coords: []}], fn x, acc ->
-
+      Enum.map(0..(height - 1), fn y ->
+        Enum.reduce(0..(width - 1), [%PartNumber{part_number: "", coords: []}], fn x, acc ->
           cond do
             is_integer(get(grid, x, y)) ->
               List.update_at(acc, -1, fn current ->
-                %PartNumber{current | part_number: current.part_number <> to_string(get(grid, x, y)), coords: current.coords ++ [{x, y}]}
+                %PartNumber{
+                  current
+                  | part_number: current.part_number <> to_string(get(grid, x, y)),
+                    coords: current.coords ++ [{x, y}]
+                }
               end)
 
             true ->
@@ -135,7 +154,6 @@ defmodule AOC23.Day3 do
       |> Enum.filter(fn part_number -> PartNumber.is_valid?(part_number, valid_coords) end)
       |> Enum.map(fn part_number -> part_number.part_number end)
     end
-
   end
 
   def to_int(char) do
@@ -161,6 +179,5 @@ defmodule AOC23.Day3 do
     |> GridInput.valid_part_numbers()
     |> Enum.map(&to_int/1)
     |> Enum.sum()
-
   end
 end

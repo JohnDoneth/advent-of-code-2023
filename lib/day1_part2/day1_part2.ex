@@ -11,10 +11,11 @@ defmodule AOC23.Day1Part2.LineParser do
   defparsec(:eight_t, string("eight"))
   defparsec(:nine_t, string("nine"))
 
-  digit = ascii_char([?0..?9])
-          |> map({List, :wrap, []})
-          |> map({List, :to_string, []})
-          |> map({__MODULE__, :to_int, []})
+  digit =
+    ascii_char([?0..?9])
+    |> map({List, :wrap, []})
+    |> map({List, :to_string, []})
+    |> map({__MODULE__, :to_int, []})
 
   alpha_char = ascii_char([?a..?z])
 
@@ -38,9 +39,8 @@ defmodule AOC23.Day1Part2 do
   end
 
   def line_value(value) do
-
-    value
-      = value
+    value =
+      value
       |> String.replace("one", "o1e")
       |> String.replace("two", "t2o")
       |> String.replace("three", "t3e")

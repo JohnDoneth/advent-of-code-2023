@@ -2,38 +2,50 @@ defmodule AOC23.Day2Part2 do
   defmodule LineParser do
     import NimbleParsec
 
-    defcombinatorp(:digit,
-            integer(min: 1))
+    defcombinatorp(
+      :digit,
+      integer(min: 1)
+    )
 
-    prefix = ignore(string("Game "))
-             |> parsec(:whitespace)
-             |> unwrap_and_tag(integer(min: 1), :game_id)
-             |> ignore(string(": "))
+    prefix =
+      ignore(string("Game "))
+      |> parsec(:whitespace)
+      |> unwrap_and_tag(integer(min: 1), :game_id)
+      |> ignore(string(": "))
 
-    blue = parsec(:digit)
-           |> parsec(:whitespace)
-           |> ignore(string("blue"))
-           |> unwrap_and_tag(:blue)
+    blue =
+      parsec(:digit)
+      |> parsec(:whitespace)
+      |> ignore(string("blue"))
+      |> unwrap_and_tag(:blue)
 
-    red = parsec(:digit)
-          |> parsec(:whitespace)
-          |> ignore(string("red"))
-          |> unwrap_and_tag(:red)
+    red =
+      parsec(:digit)
+      |> parsec(:whitespace)
+      |> ignore(string("red"))
+      |> unwrap_and_tag(:red)
 
-    green = parsec(:digit)
-            |> parsec(:whitespace)
-            |> ignore(string("green"))
-            |> unwrap_and_tag(:green)
+    green =
+      parsec(:digit)
+      |> parsec(:whitespace)
+      |> ignore(string("green"))
+      |> unwrap_and_tag(:green)
 
     defparsec(:comma, ignore(optional(string(","))))
     defparsec(:whitespace, ignore(repeat(string(" "))))
 
-    defcombinatorp(:color_value, parsec(:whitespace) |> choice([blue, red, green]) |> parsec(:comma))
+    defcombinatorp(
+      :color_value,
+      parsec(:whitespace) |> choice([blue, red, green]) |> parsec(:comma)
+    )
 
-    defparsec(:set, parsec(:color_value)
-                    |> times(min: 1)
-                    |> wrap()
-                    |> map({Enum, :into, [%{}]}))
+    defparsec(
+      :set,
+      parsec(:color_value)
+      |> times(min: 1)
+      |> wrap()
+      |> map({Enum, :into, [%{}]})
+    )
 
     defparsec(:line, prefix |> tag(repeat(parsec(:set) |> ignore(optional(string("; ")))), :sets))
 
@@ -46,7 +58,7 @@ defmodule AOC23.Day2Part2 do
   end
 
   def line_value(line) do
-    {:ok, values, _, _, _, _} = LineParser.line(line);
+    {:ok, values, _, _, _, _} = LineParser.line(line)
     values
   end
 
